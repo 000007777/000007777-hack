@@ -1,0 +1,606 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HACKGPT4.0 - Tower Signal Bot</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #0a0a1a;
+            --primary-glow: #9D00FF;
+            --secondary-glow: #00FF7F;
+            --text-color: #FFFFFF;
+            --font-family: 'Share Tech Mono', monospace;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-family);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-shadow: 0 0 3px rgba(255, 255, 255, 0.3);
+        }
+
+        .background-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .background-animation .shape {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.15;
+            filter: blur(80px);
+        }
+
+        .shape1 {
+            width: 500px;
+            height: 500px;
+            background: var(--primary-glow);
+            top: -10%;
+            left: -10%;
+            animation: move 25s infinite alternate ease-in-out;
+        }
+
+        .shape2 {
+            width: 400px;
+            height: 400px;
+            background: #4a4a8a;
+            bottom: -5%;
+            right: -5%;
+            animation: move 30s infinite alternate ease-in-out;
+        }
+        
+        @keyframes move {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(40vw, 30vh) scale(1.2); }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+        
+        /* --- Splash Screen --- */
+        #splash-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+            transition: opacity 0.8s ease-out;
+        }
+
+        #splash-screen.fade-out {
+            opacity: 0;
+        }
+
+        .logo {
+            font-size: 3.5rem;
+            font-weight: bold;
+            letter-spacing: 4px;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 10px var(--primary-glow), 0 0 20px var(--primary-glow);
+            animation: flicker 2s infinite alternate;
+        }
+
+        @keyframes flicker {
+            0%, 18%, 22%, 25%, 53%, 57%, 100% {
+                text-shadow:
+                0 0 4px #fff,
+                0 0 11px var(--primary-glow),
+                0 0 19px var(--primary-glow),
+                0 0 40px var(--primary-glow),
+                0 0 80px var(--primary-glow);
+            }
+            20%, 24%, 55% {        
+                text-shadow: none;
+            }
+        }
+
+        .progress-container {
+            width: 300px;
+            height: 10px;
+            border: 1px solid var(--primary-glow);
+            border-radius: 5px;
+            padding: 2px;
+            margin-bottom: 1rem;
+        }
+
+        #progress-bar {
+            width: 0%;
+            height: 100%;
+            background: var(--primary-glow);
+            border-radius: 3px;
+            box-shadow: 0 0 10px var(--primary-glow);
+            transition: width 2s ease-out;
+        }
+
+        .loading-text {
+            font-size: 1rem;
+            letter-spacing: 2px;
+        }
+
+        /* --- Main App --- */
+        #main-app {
+            opacity: 0;
+            transition: opacity 0.8s ease-in;
+            width: 90%;
+            max-width: 1000px;
+        }
+        
+        #main-app.fade-in {
+            opacity: 1;
+        }
+
+        .glass-panel {
+            background: rgba(20, 20, 40, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--primary-glow);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 0 25px rgba(157, 0, 255, 0.3);
+            display: flex;
+            gap: 2rem;
+        }
+
+        .left-column, .right-column {
+            flex: 1;
+        }
+        
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            transition: opacity 0.5s ease;
+        }
+        
+        .left-column.dimmed {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .static-info p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: #ccc;
+            letter-spacing: 1px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-group label {
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .risk-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .risk-btn {
+            flex: 1;
+            padding: 0.75rem;
+            font-family: var(--font-family);
+            background: transparent;
+            border: 1px solid rgba(157, 0, 255, 0.5);
+            color: var(--text-color);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .risk-btn:hover {
+            background: rgba(157, 0, 255, 0.2);
+            border-color: var(--primary-glow);
+        }
+
+        .risk-btn.active {
+            background: var(--primary-glow);
+            color: var(--bg-color);
+            text-shadow: none;
+            font-weight: bold;
+            border-color: var(--primary-glow);
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+        
+        #levels-select {
+            width: 100%;
+            padding: 0.75rem;
+            font-family: var(--font-family);
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(157, 0, 255, 0.5);
+            color: var(--text-color);
+            border-radius: 5px;
+            font-size: 1rem;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="white" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 0.7rem center;
+        }
+
+        #analyze-button {
+            padding: 1rem;
+            font-size: 1.2rem;
+            font-family: var(--font-family);
+            background: var(--primary-glow);
+            color: var(--bg-color);
+            text-shadow: none;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        #analyze-button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 25px var(--primary-glow);
+        }
+        
+        #analyze-button:disabled {
+            background: #555;
+            box-shadow: none;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        
+        #cooldown-timer {
+            text-align: center;
+            margin-top: -0.5rem; /* Pulls it closer to the button */
+            margin-bottom: -0.5rem;
+            font-size: 1rem;
+            color: var(--secondary-glow);
+            letter-spacing: 1px;
+            height: 1.2rem; /* Reserve space to prevent layout shift */
+        }
+        
+        #cooldown-timer.hidden {
+            display: block !important; /* Keep in layout but hide content */
+            visibility: hidden;
+        }
+
+        #signal-output {
+            margin-top: auto;
+            border: 1px dashed var(--secondary-glow);
+            border-radius: 5px;
+            padding: 1rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        
+        #signal-output.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #signal-output p {
+            margin: 0.5rem 0;
+        }
+        
+        #signal-output span {
+            font-weight: bold;
+            color: var(--secondary-glow);
+        }
+
+        /* --- Right Column - Tower --- */
+        #tower-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(10, 1fr);
+            gap: 5px;
+            height: 500px;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .tower-cell {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        #tower-grid.analyzing .tower-cell {
+            animation: neural-pulse 1s infinite alternate;
+            animation-delay: calc(var(--cell-index) * 10ms);
+        }
+        
+        @keyframes neural-pulse {
+            from {
+                border-color: rgba(157, 0, 255, 0.4);
+                box-shadow: inset 0 0 5px rgba(157, 0, 255, 0.2);
+            }
+            to {
+                border-color: rgba(157, 0, 255, 0.8);
+                box-shadow: inset 0 0 10px rgba(157, 0, 255, 0.5);
+            }
+        }
+
+        .tower-cell.safe-path {
+            background-color: var(--secondary-glow);
+            border-color: var(--secondary-glow);
+            box-shadow: 0 0 15px var(--secondary-glow), inset 0 0 5px rgba(255, 255, 255, 0.5);
+            animation: pulse-green 1.5s infinite;
+        }
+
+        @keyframes pulse-green {
+            0% { transform: scale(1); box-shadow: 0 0 15px var(--secondary-glow); }
+            50% { transform: scale(1.05); box-shadow: 0 0 25px var(--secondary-glow); }
+            100% { transform: scale(1); box-shadow: 0 0 15px var(--secondary-glow); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="background-animation">
+        <div class="shape shape1"></div>
+        <div class="shape shape2"></div>
+    </div>
+
+    <div id="splash-screen">
+        <div class="logo">HACKGPT4.0</div>
+        <div class="progress-container">
+            <div id="progress-bar"></div>
+        </div>
+        <p class="loading-text">Conectando à rede neural....</p>
+    </div>
+
+    <main id="main-app" class="hidden">
+        <div class="glass-panel">
+            <div class="left-column" id="left-column">
+                <div class="static-info">
+                    <p>CASSINO: MARTIN</p>
+                    <p>JOGO: TOWER</p>
+                </div>
+
+                <div class="control-group">
+                    <label for="risk-buttons">RISCO:</label>
+                    <div class="risk-buttons" id="risk-buttons">
+                        <button class="risk-btn active" data-risk="Classic">Classic</button>
+                        <button class="risk-btn" data-risk="Low">Low</button>
+                        <button class="risk-btn" data-risk="Medium">Medium</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="levels-select">NÍVEIS:</label>
+                    <select id="levels-select"></select>
+                </div>
+
+                <button id="analyze-button">INICIAR ANÁLISE</button>
+                <div id="cooldown-timer" class="hidden"></div>
+
+                <div id="signal-output">
+                    <p>RECOMENDAÇÃO: <span id="recommendation-text"></span></p>
+                    <p>PROBABILIDADE DE SUCESSO: <span id="probability-text"></span></p>
+                </div>
+            </div>
+
+            <div class="right-column">
+                <div id="tower-grid"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- ELEMENTS ---
+            const splashScreen = document.getElementById('splash-screen');
+            const progressBar = document.getElementById('progress-bar');
+            const mainApp = document.getElementById('main-app');
+            const riskButtonsContainer = document.getElementById('risk-buttons');
+            const levelsSelect = document.getElementById('levels-select');
+            const analyzeButton = document.getElementById('analyze-button');
+            const cooldownTimer = document.getElementById('cooldown-timer');
+            const signalOutput = document.getElementById('signal-output');
+            const recommendationText = document.getElementById('recommendation-text');
+            const probabilityText = document.getElementById('probability-text');
+            const towerGrid = document.getElementById('tower-grid');
+            const leftColumn = document.getElementById('left-column');
+
+            // --- STATE ---
+            let currentRisk = 'Classic';
+            let isAnalyzing = false;
+            let cooldownInterval = null;
+            
+            const levelOptions = {
+                Classic: { min: 3, max: 10 },
+                Low: { min: 2, max: 4 },
+                Medium: { min: 1, max: 3 }
+            };
+
+            // --- FUNCTIONS ---
+
+            function updateLevelsDropdown() {
+                levelsSelect.innerHTML = '';
+                const options = levelOptions[currentRisk];
+                for (let i = options.min; i <= options.max; i++) {
+                    const option = document.createElement('option');
+                    option.value = i;
+                    option.textContent = i;
+                    levelsSelect.appendChild(option);
+                }
+            }
+            
+            function createTowerGrid() {
+                towerGrid.innerHTML = '';
+                for (let i = 0; i < 50; i++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('tower-cell');
+                    cell.style.setProperty('--cell-index', i);
+                    towerGrid.appendChild(cell);
+                }
+            }
+            
+            function startCooldown() {
+                analyzeButton.textContent = 'NOVA ANÁLISE';
+                analyzeButton.disabled = true;
+                let countdown = 30;
+                
+                cooldownTimer.textContent = `Novo sinal em ${countdown}s`;
+                cooldownTimer.classList.remove('hidden');
+
+                cooldownInterval = setInterval(() => {
+                    countdown--;
+                    cooldownTimer.textContent = `Novo sinal em ${countdown}s`;
+                    if (countdown <= 0) {
+                        clearInterval(cooldownInterval);
+                        cooldownTimer.classList.add('hidden');
+                        analyzeButton.disabled = false;
+                    }
+                }, 1000);
+            }
+
+            function resetToInitialState() {
+                isAnalyzing = false;
+                analyzeButton.textContent = 'INICIAR ANÁLISE';
+                analyzeButton.disabled = false;
+                leftColumn.classList.remove('dimmed');
+                towerGrid.classList.remove('analyzing');
+                signalOutput.classList.remove('visible');
+                
+                clearInterval(cooldownInterval);
+                cooldownTimer.classList.add('hidden');
+                
+                const cells = document.querySelectorAll('.tower-cell');
+                cells.forEach(cell => cell.classList.remove('safe-path'));
+            }
+
+            function startAnalysis() {
+                if (isAnalyzing) return;
+
+                isAnalyzing = true;
+                analyzeButton.textContent = 'ANALISANDO...';
+                analyzeButton.disabled = true;
+                leftColumn.classList.add('dimmed');
+                towerGrid.classList.add('analyzing');
+                signalOutput.classList.remove('visible');
+
+                const cells = document.querySelectorAll('.tower-cell');
+                cells.forEach(cell => cell.classList.remove('safe-path'));
+
+                const analysisDuration = Math.random() * 2000 + 5000; // 5-7 seconds
+
+                setTimeout(() => {
+                    const minLevel = parseInt(levelsSelect.options[0].value);
+                    const maxLevel = parseInt(levelsSelect.options[levelsSelect.options.length - 1].value);
+                    const recommendedLevels = Math.floor(Math.random() * (maxLevel - minLevel + 1)) + minLevel;
+                    const successProbability = (Math.random() * 9 + 89).toFixed(2); // 89.00 - 98.00
+
+                    recommendationText.textContent = `Subir ${recommendedLevels} Níveis`;
+                    probabilityText.textContent = `${successProbability}%`;
+
+                    towerGrid.classList.remove('analyzing');
+                    signalOutput.classList.add('visible');
+                    leftColumn.classList.remove('dimmed');
+
+                    // *** FIX 1: Illuminate path from TOP to BOTTOM ***
+                    for (let i = 0; i < recommendedLevels; i++) {
+                        // i represents the row index from the top (0-indexed)
+                        const randomColIndex = Math.floor(Math.random() * 5); // 0-4
+                        const cellIndex = i * 5 + randomColIndex; // Correct top-down calculation
+                        
+                        const cell = towerGrid.children[cellIndex];
+                        if (cell) {
+                            setTimeout(() => {
+                                cell.classList.add('safe-path');
+                            }, i * 100); // Stagger the animation
+                        }
+                    }
+
+                    // *** FIX 2: Start 30-second cooldown timer ***
+                    startCooldown();
+
+                }, analysisDuration);
+            }
+
+            // --- EVENT LISTENERS ---
+            
+            riskButtonsContainer.addEventListener('click', (e) => {
+                if (isAnalyzing || !e.target.classList.contains('risk-btn')) return;
+
+                document.querySelectorAll('.risk-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                currentRisk = e.target.dataset.risk;
+                updateLevelsDropdown();
+            });
+
+            // ROBUST: Event Delegation for the main action button
+            leftColumn.addEventListener('click', (e) => {
+                // Only act if the analyze button itself was clicked
+                if (e.target.id === 'analyze-button' && !e.target.disabled) {
+                    const button = e.target;
+                    
+                    if (button.textContent === 'NOVA ANÁLISE') {
+                        resetToInitialState();
+                    } else if (!isAnalyzing) {
+                        startAnalysis();
+                    }
+                }
+            });
+
+            // --- INITIALIZATION ---
+            function init() {
+                // Splash screen sequence
+                setTimeout(() => {
+                    progressBar.style.width = '100%';
+                }, 100);
+
+                setTimeout(() => {
+                    splashScreen.classList.add('fade-out');
+                }, 2500);
+                
+                setTimeout(() => {
+                    splashScreen.classList.add('hidden');
+                    mainApp.classList.remove('hidden');
+                    setTimeout(() => mainApp.classList.add('fade-in'), 50);
+                }, 3300);
+
+                // App setup
+                createTowerGrid();
+                updateLevelsDropdown();
+            }
+
+            init();
+        });
+    </script>
+</body>
+</html>
