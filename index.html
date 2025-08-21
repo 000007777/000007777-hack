@@ -394,6 +394,8 @@
             width: 100%;
             max-width: 300px;
             margin: 0 auto;
+            position: relative;
+            overflow: hidden;
         }
 
         .tower-cell {
@@ -403,20 +405,22 @@
             transition: all 0.3s ease;
         }
         
-        #tower-grid.analyzing .tower-cell {
-            animation: neural-pulse 1s infinite alternate;
-            animation-delay: calc(var(--cell-index) * 10ms);
+        #tower-grid.analyzing::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, var(--secondary-glow), transparent);
+            box-shadow: 0 0 15px var(--secondary-glow);
+            animation: scan-effect 1.5s infinite linear;
+            z-index: 2;
         }
         
-        @keyframes neural-pulse {
-            from {
-                border-color: rgba(157, 0, 255, 0.4);
-                box-shadow: inset 0 0 5px rgba(157, 0, 255, 0.2);
-            }
-            to {
-                border-color: rgba(157, 0, 255, 0.8);
-                box-shadow: inset 0 0 10px rgba(157, 0, 255, 0.5);
-            }
+        @keyframes scan-effect {
+            0% { top: -10px; }
+            100% { top: 100%; }
         }
 
         .tower-cell.safe-path {
@@ -521,8 +525,8 @@
             
             const levelOptions = {
                 Classic: { min: 3, max: 10 },
-                Low: { min: 2, max: 4 },
-                Medium: { min: 1, max: 3 }
+                Low: { min: 1, max: 4 },
+                Medium: { min: 1, max: 2 }
             };
 
             // --- FUNCTIONS ---
@@ -584,6 +588,32 @@
                 cells.forEach(cell => cell.classList.remove('safe-path'));
             }
 
+            function calculateSuccessProbability(risk, levels) {
+                let baseProbability = 99.0;
+                let penaltyPerLevel = 0;
+
+                switch (risk) {
+                    case 'Classic':
+                        baseProbability = 99.5;
+                        penaltyPerLevel = 1.2;
+                        break;
+                    case 'Low':
+                        baseProbability = 98.0;
+                        penaltyPerLevel = 2.5;
+                        break;
+                    case 'Medium':
+                        baseProbability = 96.0;
+                        penaltyPerLevel = 4.0;
+                        break;
+                }
+
+                let calculatedProbability = baseProbability - ((levels - levelOptions[risk].min) * penaltyPerLevel);
+                
+                // Ensure probability doesn't drop too low or go too high, making it look plausible
+                calculatedProbability = Math.max(75.0, Math.min(99.99, calculatedProbability));
+                return calculatedProbability.toFixed(2);
+            }
+
             function startAnalysis() {
                 if (isAnalyzing) return;
 
@@ -597,13 +627,11 @@
                 const cells = document.querySelectorAll('.tower-cell');
                 cells.forEach(cell => cell.classList.remove('safe-path'));
 
-                const analysisDuration = Math.random() * 2000 + 5000; // 5-7 seconds
+                const analysisDuration = Math.random() * 2000 + 4000; // 4-6 seconds
 
                 setTimeout(() => {
-                    const minLevel = parseInt(levelsSelect.options[0].value);
-                    const maxLevel = parseInt(levelsSelect.options[levelsSelect.options.length - 1].value);
-                    const recommendedLevels = Math.floor(Math.random() * (maxLevel - minLevel + 1)) + minLevel;
-                    const successProbability = (Math.random() * 9 + 89).toFixed(2); // 89.00 - 98.00
+                    const recommendedLevels = parseInt(levelsSelect.value);
+                    const successProbability = calculateSuccessProbability(currentRisk, recommendedLevels);
 
                     recommendationText.textContent = `Subir ${recommendedLevels} Níveis`;
                     probabilityText.textContent = `${successProbability}%`;
@@ -616,10 +644,12 @@
 
                     for (let i = 0; i < recommendedLevels; i++) {
                         const randomColIndex = Math.floor(Math.random() * 5);
-                        const cellIndex = i * 5 + randomColIndex;
+                        const rowIndex = i; // CORRECTED: Start from row 0 (top)
+                        const cellIndex = rowIndex * 5 + randomColIndex;
                         
                         const cell = towerGrid.children[cellIndex];
                         if (cell) {
+                            // Reveal each step of the path with a slight delay
                             setTimeout(() => {
                                 cell.classList.add('safe-path');
                             }, i * 100);
