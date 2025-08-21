@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HACKGPT4.0 - Tower Signal Bot</title>
+    <title>HACKGPT4.0 - Robô de Sinais Tower</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -82,18 +82,21 @@
             display: none !important;
         }
         
-        /* --- Splash Screen --- */
-        #splash-screen {
+        .fade-out {
+            opacity: 0 !important;
+        }
+        
+        /* --- ID & Loading Screens --- */
+        #id-screen, #loading-screen {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             opacity: 1;
             transition: opacity 0.8s ease-out;
-        }
-
-        #splash-screen.fade-out {
-            opacity: 0;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
         }
 
         .logo {
@@ -118,9 +121,65 @@
                 text-shadow: none;
             }
         }
+        
+        .prompt-text {
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+        }
+
+        #initial-id-input {
+            width: 100%;
+            padding: 1rem;
+            font-family: var(--font-family);
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(157, 0, 255, 0.5);
+            color: var(--text-color);
+            border-radius: 5px;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        
+        #initial-id-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        #initial-id-input:focus {
+            outline: none;
+            border-color: var(--primary-glow);
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+        
+        #connect-button {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.2rem;
+            font-family: var(--font-family);
+            background: var(--primary-glow);
+            color: var(--bg-color);
+            text-shadow: none;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+        
+        #connect-button:disabled {
+            background: #555;
+            box-shadow: none;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
 
         .progress-container {
-            width: 300px;
+            width: 100%;
+            max-width: 300px;
             height: 10px;
             border: 1px solid var(--primary-glow);
             border-radius: 5px;
@@ -134,7 +193,6 @@
             background: var(--primary-glow);
             border-radius: 3px;
             box-shadow: 0 0 10px var(--primary-glow);
-            transition: width 2s ease-out;
         }
 
         .loading-text {
@@ -183,10 +241,14 @@
         }
 
         .static-info p {
-            margin: 0;
+            margin: 0.2rem 0;
             font-size: 0.9rem;
             color: #ccc;
             letter-spacing: 1px;
+        }
+        .static-info span {
+            color: var(--text-color);
+            font-weight: bold;
         }
 
         .control-group {
@@ -233,7 +295,7 @@
             box-shadow: 0 0 15px var(--primary-glow);
         }
         
-        #levels-select, #casino-id-input {
+        #levels-select {
             width: 100%;
             padding: 0.75rem;
             font-family: var(--font-family);
@@ -243,16 +305,6 @@
             border-radius: 5px;
             font-size: 1rem;
             transition: all 0.3s ease;
-        }
-        
-        #casino-id-input::placeholder {
-            color: rgba(255, 255, 255, 0.4);
-        }
-        
-        #casino-id-input:focus {
-            outline: none;
-            border-color: var(--primary-glow);
-            box-shadow: 0 0 10px var(--primary-glow);
         }
 
         #levels-select {
@@ -389,32 +441,35 @@
         <div class="shape shape2"></div>
     </div>
 
-    <div id="splash-screen">
+    <div id="id-screen">
+        <div class="logo">HACKGPT4.0</div>
+        <p class="prompt-text">Insira seu ID do cassino Martnin para se conectar</p>
+        <input type="text" id="initial-id-input" placeholder="Digite seu ID aqui">
+        <button id="connect-button" disabled>Conectar</button>
+    </div>
+    
+    <div id="loading-screen" class="hidden">
         <div class="logo">HACKGPT4.0</div>
         <div class="progress-container">
             <div id="progress-bar"></div>
         </div>
-        <p class="loading-text">Conectando à rede neural....</p>
+        <p class="loading-text">Conectando à rede Martnin...</p>
     </div>
 
     <main id="main-app" class="hidden">
         <div class="glass-panel">
             <div class="left-column" id="left-column">
                 <div class="static-info">
-                    <p>JOGO: TOWER</p>
-                </div>
-                
-                <div class="control-group">
-                    <label for="casino-id-input">SEU ID DE CASSINO:</label>
-                    <input type="text" id="casino-id-input" placeholder="Insira seu ID aqui">
+                    <p>JOGO: <span>TOWER</span></p>
+                    <p>ID: <span id="connected-id-text"></span></p>
                 </div>
 
                 <div class="control-group">
                     <label for="risk-buttons">RISCO:</label>
                     <div class="risk-buttons" id="risk-buttons">
-                        <button class="risk-btn active" data-risk="Classic">Classic</button>
-                        <button class="risk-btn" data-risk="Low">Low</button>
-                        <button class="risk-btn" data-risk="Medium">Medium</button>
+                        <button class="risk-btn active" data-risk="Classic">Clássico</button>
+                        <button class="risk-btn" data-risk="Low">Baixo</button>
+                        <button class="risk-btn" data-risk="Medium">Médio</button>
                     </div>
                 </div>
 
@@ -441,10 +496,13 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // --- ELEMENTS ---
-            const splashScreen = document.getElementById('splash-screen');
+            const idScreen = document.getElementById('id-screen');
+            const initialIdInput = document.getElementById('initial-id-input');
+            const connectButton = document.getElementById('connect-button');
+            const loadingScreen = document.getElementById('loading-screen');
             const progressBar = document.getElementById('progress-bar');
             const mainApp = document.getElementById('main-app');
-            const casinoIdInput = document.getElementById('casino-id-input');
+            const connectedIdText = document.getElementById('connected-id-text');
             const riskButtonsContainer = document.getElementById('risk-buttons');
             const levelsSelect = document.getElementById('levels-select');
             const analyzeButton = document.getElementById('analyze-button');
@@ -459,6 +517,7 @@
             let currentRisk = 'Classic';
             let isAnalyzing = false;
             let cooldownInterval = null;
+            let casinoId = '';
             
             const levelOptions = {
                 Classic: { min: 3, max: 10 },
@@ -504,7 +563,7 @@
                         clearInterval(cooldownInterval);
                         cooldownInterval = null; // Mark cooldown as finished
                         cooldownTimer.classList.add('hidden');
-                        analyzeButton.disabled = casinoIdInput.value.trim() === '';
+                        analyzeButton.disabled = false;
                     }
                 }, 1000);
             }
@@ -512,13 +571,13 @@
             function resetToInitialState() {
                 isAnalyzing = false;
                 analyzeButton.textContent = 'INICIAR ANÁLISE';
-                analyzeButton.disabled = casinoIdInput.value.trim() === '';
+                analyzeButton.disabled = false;
                 leftColumn.classList.remove('dimmed');
                 towerGrid.classList.remove('analyzing');
                 signalOutput.classList.remove('visible');
                 
                 clearInterval(cooldownInterval);
-                cooldownInterval = null; // Mark cooldown as finished
+                cooldownInterval = null;
                 cooldownTimer.classList.add('hidden');
                 
                 const cells = document.querySelectorAll('.tower-cell');
@@ -553,7 +612,7 @@
                     signalOutput.classList.add('visible');
                     leftColumn.classList.remove('dimmed');
                     
-                    isAnalyzing = false; // Allow state reset after analysis
+                    isAnalyzing = false;
 
                     for (let i = 0; i < recommendedLevels; i++) {
                         const randomColIndex = Math.floor(Math.random() * 5);
@@ -574,10 +633,34 @@
 
             // --- EVENT LISTENERS ---
             
-            casinoIdInput.addEventListener('input', () => {
-                if (!isAnalyzing && !cooldownInterval) {
-                    analyzeButton.disabled = casinoIdInput.value.trim() === '';
-                }
+            initialIdInput.addEventListener('input', () => {
+                connectButton.disabled = initialIdInput.value.trim() === '';
+            });
+            
+            connectButton.addEventListener('click', () => {
+                casinoId = initialIdInput.value.trim();
+                idScreen.classList.add('fade-out');
+
+                setTimeout(() => {
+                    idScreen.classList.add('hidden');
+                    loadingScreen.classList.remove('hidden');
+
+                    setTimeout(() => {
+                        progressBar.style.transition = 'width 10s linear';
+                        progressBar.style.width = '100%';
+                    }, 50);
+
+                    setTimeout(() => {
+                        loadingScreen.classList.add('fade-out');
+                        setTimeout(() => {
+                            loadingScreen.classList.add('hidden');
+                            mainApp.classList.remove('hidden');
+                            connectedIdText.textContent = casinoId;
+                            analyzeButton.disabled = false;
+                            setTimeout(() => mainApp.classList.add('fade-in'), 50);
+                        }, 800);
+                    }, 10000);
+                }, 800);
             });
 
             riskButtonsContainer.addEventListener('click', (e) => {
@@ -603,22 +686,6 @@
 
             // --- INITIALIZATION ---
             function init() {
-                // Splash screen sequence
-                setTimeout(() => {
-                    progressBar.style.width = '100%';
-                }, 100);
-
-                setTimeout(() => {
-                    splashScreen.classList.add('fade-out');
-                }, 2500);
-                
-                setTimeout(() => {
-                    splashScreen.classList.add('hidden');
-                    mainApp.classList.remove('hidden');
-                    setTimeout(() => mainApp.classList.add('fade-in'), 50);
-                }, 3300);
-
-                // App setup
                 createTowerGrid();
                 updateLevelsDropdown();
             }
