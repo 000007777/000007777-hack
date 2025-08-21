@@ -233,7 +233,7 @@
             box-shadow: 0 0 15px var(--primary-glow);
         }
         
-        #levels-select {
+        #levels-select, #casino-id-input {
             width: 100%;
             padding: 0.75rem;
             font-family: var(--font-family);
@@ -242,6 +242,20 @@
             color: var(--text-color);
             border-radius: 5px;
             font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        #casino-id-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        #casino-id-input:focus {
+            outline: none;
+            border-color: var(--primary-glow);
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        #levels-select {
             -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
@@ -267,7 +281,7 @@
             box-shadow: 0 0 15px var(--primary-glow);
         }
 
-        #analyze-button:hover {
+        #analyze-button:hover:not(:disabled) {
             transform: scale(1.02);
             box-shadow: 0 0 25px var(--primary-glow);
         }
@@ -387,8 +401,12 @@
         <div class="glass-panel">
             <div class="left-column" id="left-column">
                 <div class="static-info">
-                    <p>CASSINO: MARTIN</p>
                     <p>JOGO: TOWER</p>
+                </div>
+                
+                <div class="control-group">
+                    <label for="casino-id-input">SEU ID DE CASSINO:</label>
+                    <input type="text" id="casino-id-input" placeholder="Insira seu ID aqui">
                 </div>
 
                 <div class="control-group">
@@ -405,7 +423,7 @@
                     <select id="levels-select"></select>
                 </div>
 
-                <button id="analyze-button">INICIAR ANÁLISE</button>
+                <button id="analyze-button" disabled>INICIAR ANÁLISE</button>
                 <div id="cooldown-timer" class="hidden"></div>
 
                 <div id="signal-output">
@@ -426,6 +444,7 @@
             const splashScreen = document.getElementById('splash-screen');
             const progressBar = document.getElementById('progress-bar');
             const mainApp = document.getElementById('main-app');
+            const casinoIdInput = document.getElementById('casino-id-input');
             const riskButtonsContainer = document.getElementById('risk-buttons');
             const levelsSelect = document.getElementById('levels-select');
             const analyzeButton = document.getElementById('analyze-button');
@@ -483,8 +502,9 @@
                     cooldownTimer.textContent = `Novo sinal em ${countdown}s`;
                     if (countdown <= 0) {
                         clearInterval(cooldownInterval);
+                        cooldownInterval = null; // Mark cooldown as finished
                         cooldownTimer.classList.add('hidden');
-                        analyzeButton.disabled = false;
+                        analyzeButton.disabled = casinoIdInput.value.trim() === '';
                     }
                 }, 1000);
             }
@@ -492,12 +512,13 @@
             function resetToInitialState() {
                 isAnalyzing = false;
                 analyzeButton.textContent = 'INICIAR ANÁLISE';
-                analyzeButton.disabled = false;
+                analyzeButton.disabled = casinoIdInput.value.trim() === '';
                 leftColumn.classList.remove('dimmed');
                 towerGrid.classList.remove('analyzing');
                 signalOutput.classList.remove('visible');
                 
                 clearInterval(cooldownInterval);
+                cooldownInterval = null; // Mark cooldown as finished
                 cooldownTimer.classList.add('hidden');
                 
                 const cells = document.querySelectorAll('.tower-cell');
@@ -531,22 +552,21 @@
                     towerGrid.classList.remove('analyzing');
                     signalOutput.classList.add('visible');
                     leftColumn.classList.remove('dimmed');
+                    
+                    isAnalyzing = false; // Allow state reset after analysis
 
-                    // *** FIX 1: Illuminate path from TOP to BOTTOM ***
                     for (let i = 0; i < recommendedLevels; i++) {
-                        // i represents the row index from the top (0-indexed)
-                        const randomColIndex = Math.floor(Math.random() * 5); // 0-4
-                        const cellIndex = i * 5 + randomColIndex; // Correct top-down calculation
+                        const randomColIndex = Math.floor(Math.random() * 5);
+                        const cellIndex = i * 5 + randomColIndex;
                         
                         const cell = towerGrid.children[cellIndex];
                         if (cell) {
                             setTimeout(() => {
                                 cell.classList.add('safe-path');
-                            }, i * 100); // Stagger the animation
+                            }, i * 100);
                         }
                     }
 
-                    // *** FIX 2: Start 30-second cooldown timer ***
                     startCooldown();
 
                 }, analysisDuration);
@@ -554,6 +574,12 @@
 
             // --- EVENT LISTENERS ---
             
+            casinoIdInput.addEventListener('input', () => {
+                if (!isAnalyzing && !cooldownInterval) {
+                    analyzeButton.disabled = casinoIdInput.value.trim() === '';
+                }
+            });
+
             riskButtonsContainer.addEventListener('click', (e) => {
                 if (isAnalyzing || !e.target.classList.contains('risk-btn')) return;
 
@@ -563,9 +589,7 @@
                 updateLevelsDropdown();
             });
 
-            // ROBUST: Event Delegation for the main action button
             leftColumn.addEventListener('click', (e) => {
-                // Only act if the analyze button itself was clicked
                 if (e.target.id === 'analyze-button' && !e.target.disabled) {
                     const button = e.target;
                     
