@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-ar">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HACKGPT4.0 - Robô de Sinais Tower</title>
     
@@ -86,8 +86,8 @@
             opacity: 0 !important;
         }
         
-        /* --- ID & Loading Screens --- */
-        #id-screen, #loading-screen {
+        /* --- All Screens --- */
+        #device-selection-screen, #id-screen, #loading-screen {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -126,6 +126,35 @@
             font-size: 1.2rem;
             letter-spacing: 1px;
             margin-bottom: 1.5rem;
+        }
+
+        .selection-buttons {
+            display: flex;
+            gap: 1rem;
+            width: 100%;
+        }
+
+        .selection-buttons button {
+            flex: 1;
+            padding: 1rem;
+            font-size: 1.2rem;
+            font-family: var(--font-family);
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(157, 0, 255, 0.5);
+            color: var(--text-color);
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .selection-buttons button:hover {
+            background: var(--primary-glow);
+            color: var(--bg-color);
+            text-shadow: none;
+            font-weight: bold;
+            box-shadow: 0 0 15px var(--primary-glow);
         }
 
         #initial-id-input {
@@ -436,6 +465,42 @@
             100% { transform: scale(1); box-shadow: 0 0 15px var(--secondary-glow); }
         }
 
+        /* --- Mobile Layout Overrides --- */
+        body.mobile-layout {
+            align-items: flex-start;
+            padding: 2rem 0;
+            height: auto;
+            min-height: 100%;
+            overflow-y: auto;
+        }
+
+        body.mobile-layout .glass-panel {
+            flex-direction: column;
+            padding: 1rem;
+            gap: 1.5rem;
+        }
+
+        body.mobile-layout #main-app {
+            width: 95%;
+        }
+
+        body.mobile-layout #tower-grid {
+            height: 400px;
+            max-width: none;
+        }
+        
+        body.mobile-layout .left-column {
+             gap: 2rem;
+        }
+        
+        body.mobile-layout #signal-output {
+            margin-top: 0;
+        }
+
+        body.mobile-layout .logo {
+            font-size: 2.8rem;
+        }
+
     </style>
 </head>
 <body>
@@ -445,7 +510,16 @@
         <div class="shape shape2"></div>
     </div>
 
-    <div id="id-screen">
+    <div id="device-selection-screen">
+        <div class="logo">HACKGPT4.0</div>
+        <p class="prompt-text">Selecione seu dispositivo</p>
+        <div class="selection-buttons">
+            <button id="pc-button">Computador</button>
+            <button id="mobile-button">Celular</button>
+        </div>
+    </div>
+
+    <div id="id-screen" class="hidden">
         <div class="logo">HACKGPT4.0</div>
         <p class="prompt-text">Insira seu ID do cassino Martnin para se conectar</p>
         <input type="text" id="initial-id-input" placeholder="Digite seu ID aqui">
@@ -500,6 +574,9 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // --- ELEMENTS ---
+            const deviceSelectionScreen = document.getElementById('device-selection-screen');
+            const pcButton = document.getElementById('pc-button');
+            const mobileButton = document.getElementById('mobile-button');
             const idScreen = document.getElementById('id-screen');
             const initialIdInput = document.getElementById('initial-id-input');
             const connectButton = document.getElementById('connect-button');
@@ -530,6 +607,18 @@
             };
 
             // --- FUNCTIONS ---
+
+            function selectDevice(isMobile) {
+                if (isMobile) {
+                    document.body.classList.add('mobile-layout');
+                }
+                deviceSelectionScreen.classList.add('fade-out');
+                
+                setTimeout(() => {
+                    deviceSelectionScreen.classList.add('hidden');
+                    idScreen.classList.remove('hidden');
+                }, 800);
+            }
 
             function updateLevelsDropdown() {
                 levelsSelect.innerHTML = '';
@@ -663,6 +752,9 @@
 
             // --- EVENT LISTENERS ---
             
+            pcButton.addEventListener('click', () => selectDevice(false));
+            mobileButton.addEventListener('click', () => selectDevice(true));
+
             initialIdInput.addEventListener('input', () => {
                 connectButton.disabled = initialIdInput.value.trim() === '';
             });
